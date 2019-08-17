@@ -8,13 +8,14 @@ import {View, Text} from "react-native";
 // not change any data.
 export default class Timer extends React.Component {
     static propTypes = {
-        time: PropTypes.number.isRequired,
+        minutes: PropTypes.number.isRequired,
+        seconds: PropTypes.number.isRequired
     }
 
     render() {
         return (
             <View>
-                <Text>{this.props.time}</Text>
+                <Text>{this.props.minutes} : {this.props.seconds}</Text>
             </View>
         )
     }
