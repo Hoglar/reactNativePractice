@@ -6,8 +6,14 @@ import Timer from "./components/timer.js";
 import Controller from "./components/controller.js";
 
 const pomodoroModes = {
-    work: "work",
-    pause: "pause",
+    work: {
+        flag: "work",
+        time: 25
+    },
+    pause: {
+        flag: "pause",
+        time: 5
+    },
 };
 
 const styles = StyleSheet.create({
@@ -23,49 +29,79 @@ export default class App extends React.Component {
         super()
         this.state = {
             time: {
-                minutes: 25,
-                seconds: 0,
+                minutes: 0,
+                seconds: 5,
             }, // time is messured in seconds. We transform to minutes in Timer.
-            mode: pomodoroModes.pause,
+            mode: pomodoroModes.work.flag,
             running: false
         }
     }
 
-    componentDidMount() {
-        this.timerCountDown()
+    changeMode(mode) {
+        this.setState(prevState => ({
+            time: {
+                minutes: mode.time,
+                seconds: 0
+            },
+            mode: mode.flag
+        }))
     }
 
+    startTimerCountDown = () => {
+        if (!this.state.running) {
+            this.setState(prevState => ({
+                running: !prevState.running
+            }))
+            this.countdownIntervalID = setInterval(() => {
+                console.log(this.countdownIntervalID);
+                if(this.state.time.seconds !== 0) {
+                    this.setState(prevState => ({
+                        time: {
+                            minutes: prevState.time.minutes,
+                            seconds: prevState.time.seconds - 1,
+                        }
+                    }))
+                }
 
-    timerCountDown= () => {
-        setInterval(() => {
-            
-            if(this.state.time.seconds !== 0) {
-                this.setState(prevState => ({
-                    time: {
-                        minutes: prevState.time.minutes,
-                        seconds: prevState.time.seconds - 1,
-                    }
-                }))
-            }
+                else if (this.state.time.seconds === 0) {
+                    this.setState(prevState => ({
+                        time: {
+                            minutes: prevState.time.minutes - 1,
+                            seconds: 59,
+                        }
+                    }))
+                }
 
-            else if (this.state.time.seconds === 0) {
-                this.setState(prevState => ({
-                    time: {
-                        minutes: prevState.time.minutes - 1,
-                        seconds: 59,
+                if (this.state.time.seconds === 0 && this.state.time.minutes === 0) {
+                    if  (this.state.mode === pomodoroModes.work.flag) {
+                        this.changeMode(pomodoroModes.pause)
                     }
-                }))
-            }
-        }, 1000)
+                    else {
+                        this.changeMode(pomodoroModes.work)
+                    }
+                }
+            }, 1000)
+        }
     }
 
+    stopTimerCountdown = () => {
+        if (this.state.running) {
+            clearInterval(this.countdownIntervalID);
+
+            this.setState(prevState => ({
+                running: !prevState.running
+            }))
+        }
+    }
 
     render() {
         return (
             <View style={styles.container}>
                 <Timer  minutes={this.state.time.minutes}
                         seconds={this.state.time.seconds}/>
-                <Controller />
+                <Controller stopTimerCountdown={this.stopTimerCountdown}
+                            startTimerCountDown={this.startTimerCountDown}
+                            running={this.state.running}/>
             </View>
         );
     }
